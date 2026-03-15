@@ -1,0 +1,162 @@
+clc
+clear
+close all
+
+fc  = 10e9;
+B   = 20e6;
+Tp  = 10e-6;
+Trec = 30e-6; % receive window longer than tx pulse
+fs  = 40e6;
+prf = 5e3;
+Np  = 64;
+
+% target params
+R0 = 1000;
+v  = 20;
+
+% transmit chirp
+[tx, t_fast, k] = generate_chirp(fs, Tp, B);
+
+% receive echeos
+rx = simulate_single_target(tx, fs, prf, Np, R0, v, fc, Trec);
+
+% range compression
+rc = range_compress(rx, tx);
+
+% fast time sample index to range axis
+c = 3e8;
+Nr = size(rx, 1);
+Ns = length(tx);
+range_offset = ((Ns-1)/2) * (c / (2*fs));
+range_axis = (0:Nr-1)*(c/(2*fs));
+range_axis_corrected = range_axis - range_offset;
+
+% Doppler processing
+[RD, fd_axis, vel_axis] = doppler_process(rc, prf, fc);
+
+% convery range Doppler map to power
+RD_power = abs(RD).^2;
+
+% CFAR params
+Tr = 12; % training cells in range
+Td = 6; % training cells in Doppler
+Gr = 3; % guard cells in range
+Gd = 2; % guard cells in Doppler
+alpha = 14; % threshold scale factor
+
+% perform CFAR
+[detections, threshold_map] = cfar_2d(RD_power, Tr, Td, Gr, Gd, alpha);
+
+% use local maxima
+[peak_detections] = peak_filter_2d(RD_power, detections);
+
+% range Doppler map in decibels
+RD_dB = 20*log10(abs(RD) + 1e-6);
+
+% peak range estimate
+[peak_val, peak_idx] = max(abs(rc(:,1)));
+peak_range = range_axis(peak_idx);
+disp(['Peak range estimate first pulse: ', num2str(peak_range), ' m'])
+
+% transmit waveform
+figure
+plot(t_fast * 1e6, real(tx), 'LineWidth', 1.2)
+xlabel('Time (\mus)')
+ylabel('Amplitude')
+title('Transmit LFM Chirp (Real Part)')
+grid on
+
+% raw received signal magnitude for first pulse
+figure
+plot(abs(rx(:,1)), 'LineWidth', 1.2)
+xlabel('Sample Index')
+ylabel('Magnitude')
+title('Received Signal Magnitude - First Pulse')
+grid on
+
+% range-compressed magnitude for first pulse
+figure
+plot(range_axis_corrected, abs(rc(:,1)), 'LineWidth', 1.2)
+xlabel('Range (m)')
+ylabel('Magnitude')
+title('Range-Compressed Output - First Pulse')
+grid on
+
+% range-compressed matrix
+figure
+imagesc(1:Np, range_axis_corrected, abs(rc))
+xlabel('Pulse Number')
+ylabel('Range (m)')
+title('Range-Compressed Output Magnitude')
+colorbar
+axis xy
+
+% range Doppler map (dB)
+RD_dB = 20*log10(abs(RD) + 1e-6);
+
+figure
+imagesc(vel_axis, range_axis_corrected, RD_dB)
+xlabel('Radial Velocity (m/s)')
+ylabel('Range (m)')
+title('Range Doppler Map (dB)')
+colorbar
+axis xy
+
+% plot CFAR
+figure
+imagesc(vel_axis, range_axis_corrected, detections)
+xlabel('Radial Velocity (m/s)')
+ylabel('Range (m)')
+title('2D CFAR Detection')
+colorbar
+axis xy
+
+% plot detections on the range Doppler map
+figure
+imagesc(vel_axis, range_axis_corrected, RD_dB)
+xlabel('Radial Velocity (m/s)')
+ylabel('Range (m)')
+title('Range Doppler Map with CFAR')
+colorbar
+axis xy
+hold on
+
+[row_idx, col_idx] = find(peak_detections == 1);
+plot(vel_axis(col_idx), range_axis_corrected(row_idx), 'r.', 'MarkerSize', 10)
+hold off
+
+% peak filtered detections
+figure
+imagesc(vel_axis, range_axis_corrected, peak_detections)
+xlabel('Radial Velocity (m/s)')
+ylabel('Range (m)')
+title('Peak Filtered CFAR Detections')
+colorbar
+axis xy
+
+% keep the strongest filtered detection
+masked_RD = RD_power .* peak_detections;
+
+[max_val, linear_idx] = max(masked_RD(:));
+[target_r, target_d] = ind2sub(size(masked_RD), linear_idx);
+
+final_detection = zeros(size(peak_detections));
+final_detection(target_r, target_d) = 1;
+
+disp(['Final detected range: ', num2str(range_axis_corrected(target_r)), ' m'])
+disp(['Final detected velocity: ', num2str(vel_axis(target_d)), ' m/s'])
+
+% plot final detection
+figure
+imagesc(vel_axis, range_axis_corrected, RD_dB)
+xlabel('Radial Velocity (m/s)')
+ylabel('Range (m)')
+title('Range Doppler Map with Final Detection')
+colorbar
+axis xy
+hold on
+
+plot(vel_axis(target_d), range_axis_corrected(target_r), 'ro', ...
+    'MarkerSize', 10, 'LineWidth', 2)
+
+hold off
