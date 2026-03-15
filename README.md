@@ -49,11 +49,11 @@ Successful detection of the target at:
 
 # Figures
 ![LFM Chirp](figures/generated_chirp.png)
-![Return Echo](received_signal.png)
-![Range Compressed](range_compressed_output.png)
-![Range Map](range_compressed_map.png)
-![Range Doppler](range_doppler_map.png)
-![Final Detection](final_detection,png)
+![Return Echo](figures/received_signal.png)
+![Range Compressed](figures/range_compressed_output.png)
+![Range Map](figures/range_compressed_map.png)
+![Range Doppler](figures/range_doppler_map.png)
+![Final Detection](figures/final_detection,png)
 
 # How to Run
 1. Open the project folder in MATLAB
