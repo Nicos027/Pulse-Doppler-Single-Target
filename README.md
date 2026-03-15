@@ -10,15 +10,15 @@ MATLAB simulation of a pulse Doppler radar with constant false alarm rate detect
 - Isolate the final estimate using peak filtering and strongest detection
 
 # Processing
-1. **LFM chirp generation**
-2. **Single moving target echo simulation**
-3. **Matched filter range compression**
-4. **Doppler fast fourier transform across pulses**
-5. **Range Doppler map generation**
-6. **Doppler windowing with Hamming window**
-7. **2D CFAR**
-8. **Local peak filtering**
-9. **Final strongest target selection**
+1. LFM chirp generation
+2. Single moving target echo simulation
+3. Matched filter range compression
+4. Doppler fast fourier transform across pulses
+5. Range Doppler map generation
+6. Doppler windowing with Hamming window
+7. 2D CFAR
+8. Local peak filtering
+9. Final strongest target selection
 
 # Files
 - 'main.m' - runs the simulation and plotting
@@ -30,22 +30,30 @@ MATLAB simulation of a pulse Doppler radar with constant false alarm rate detect
 - 'peak_filter_2d.m' = filters detections to local 2D maxima
 
 # Radar params
-- Carrier frequency: '10 GHz'
-- Chirp bandwidth: '20MHz"
-- Pulse width: '10µs'
-- Receive window: '30 µs'
-- Sampling rate: '40 MHz'
-- Pulse repetition frequency: '5 kHz'
-- Number of pulses: '64'
+- Carrier frequency: 10 GHz
+- Chirp bandwidth: 20MHz
+- Pulse width: 10µs
+- Receive window: 30 µs
+- Sampling rate: 40 MHz
+- Pulse repetition frequency: 5 kHz
+- Number of pulses: 64
 
 # Target params
-- Initial range: '1000 m'
-- Initial velocity: '20 m/s'
+- Initial range: 1000 m
+- Initial velocity: 20 m/s
 
 # Result
 Successful detection of the target at:
-- **Range ≈ 1000 m**
-- **Radial velocity ≈ 20 m/s**
+- Range ≈ 1000 m
+- Radial velocity ≈ 20 m/s
+
+# Figures
+![LFM Chirp](figures/generated_chirp.png)
+![Return Echo](received_signal.png)
+![Range Compressed](range_compressed_output.png)
+![Range Map](range_compressed_map.png)
+![Range Doppler](range_doppler_map.png)
+![Final Detection](final_detection,png)
 
 # How to Run
 1. Open the project folder in MATLAB
