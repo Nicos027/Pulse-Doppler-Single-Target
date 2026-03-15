@@ -53,7 +53,7 @@ Successful detection of the target at:
 ![Range Compressed](figures/range_compressed_output.png)
 ![Range Map](figures/range_compressed_map.png)
 ![Range Doppler](figures/range_doppler_map.png)
-![Final Detection](figures/final_detection,png)
+![Final Detection](figures/final_detection.png)
 
 # How to Run
 1. Open the project folder in MATLAB
